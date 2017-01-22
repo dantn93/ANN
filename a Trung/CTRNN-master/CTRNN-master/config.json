@@ -1,0 +1,95 @@
+{
+    "parent_selection": {
+        "tournament": {
+            "class_name": "ParentTournamentSelection",
+            "name": "Local tournament",
+            "parameters": {
+                "e": 0.001,
+                "k": 25
+            },
+            "order": 4
+        },
+        "sigma": {
+            "class_name": "ParentSigmaScalingSelection",
+            "name": "Sigma scaling",
+            "parameters": {},
+            "order": 1
+        },
+        "proportionate": {
+            "class_name": "ParentFitnessProportionateSelection",
+            "name": "Proportionate scaling",
+            "parameters": {},
+            "order": 2
+        },
+        "boltzmann": {
+            "class_name": "ParentBoltzmannSelection",
+            "name": "Boltzmann scaling",
+            "parameters": {},
+            "order": 3
+        }
+    },
+    "genotype": {
+        "default": {
+            "class_name": "BitVectorGenotype",
+            "name": "Bit Vector",
+            "parameters": {
+                "crossover_rate": 0.5,
+                "mutation_rate": 0.9
+            },
+            "order": 1
+        }
+    },
+    "fitness": {
+        "tracker": {
+            "class_name": "TrackerAgentFitnessEvaluator",
+            "name": "Tracker agent evaluator",
+            "parameters": {
+                "wrap": true,
+                "avoidance": true,
+                "pull": false
+            },
+            "order": 1
+        },
+        "default": {
+            "class_name": "DefaultFitnessEvaluator",
+            "name": "Fraction",
+            "parameters": {
+                "random_target": false
+            },
+            "order": 2
+        }
+    },
+    "translator": {
+        "parameter": {
+            "class_name": "BinToParameterTranslator",
+            "name": "Bit to paramter",
+            "parameters": {
+                "k": 9
+            },
+            "order": 1
+        },
+        "default": {
+            "class_name": "DefaultTranslator",
+            "name": "Bit to bit",
+            "parameters": {},
+            "order": 2
+        }
+    },
+    "adult_selection": {
+        "mixing": {
+            "order": 1,
+            "name": "Generational mixing",
+            "class_name": "MixingAdultSelection"
+        },
+        "full": {
+            "order": 3,
+            "name": "Full replacement",
+            "class_name": "FullReplacementAdultSelection"
+        },
+        "over": {
+            "order": 2,
+            "name": "Over production",
+            "class_name": "OverProductionAdultSelection"
+        }
+    }
+}
