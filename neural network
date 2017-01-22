@@ -1,0 +1,112 @@
+import glob, os
+import matplotlib.pyplot as plt
+import skimage.io as io
+from skimage.feature import hog
+from skimage import data, color, exposure
+from PIL import Image
+import scipy as sp
+import re
+from sklearn import preprocessing
+import time
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import svm
+from matplotlib import style
+style.use("ggplot")
+
+def timer(fn):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = fn(*args, **kwargs)
+        end_time = time.time()
+        print 'total run-time of %r: %f minutes' % (fn.__name__, (end_time - start_time)/60.0)
+        return result
+    return wrapper
+
+def read_data():
+    np.random.seed(0)
+    cat_data = []
+    dog_data = []
+    cat_filename = []
+    dog_filename = []
+    os.chdir("F:/HK7/MH/Final/train")
+    #Doc ten anh
+    for file in glob.glob("*.jpg"):
+        if re.findall('dog.*', file):
+            dog_filename.append(file)
+        else:
+            cat_filename.append(file)
+
+    #Xao tron ten anh
+    np.random.shuffle(dog_filename)
+    np.random.shuffle(cat_filename)
+
+    #Doc anh
+    for file in dog_filename:
+        fd, hog_image = hog(sp.misc.imresize(color.rgb2gray(io.imread(file)), 
+                        (10, 10), interp='bilinear', mode=None)/255.0, orientations=8, 
+                        pixels_per_cell=(10, 10), cells_per_block=(1, 1), visualise=True)
+        dog_data.append(preprocessing.scale(fd))
+
+    for file in cat_filename:
+        fd, hog_image = hog(sp.misc.imresize(color.rgb2gray(io.imread(file)), 
+                        (10, 10), interp='bilinear', mode=None)/255.0, orientations=8, 
+                        pixels_per_cell=(10, 10), cells_per_block=(1, 1), visualise=True)
+        cat_data.append(preprocessing.scale(fd))
+            
+    cat_data = np.asarray(cat_data)
+    dog_data = np.asarray(dog_data)
+    
+    train_image = cat_data[0:7500,:]
+    train_image = np.concatenate((train_image, dog_data[0:7500,:]), axis = 0)
+    train_label = np.ones(7500)
+    train_label = (np.concatenate((train_label, np.zeros(7500)), axis = 1)).tolist()
+    
+    validation_image = cat_data[7500:10000,:]
+    validation_image = np.concatenate((validation_image, dog_data[7500:10000,:]), axis = 0)
+    validation_label = np.ones(2500)
+    validation_label = (np.concatenate((validation_label, np.zeros(2500)), axis = 1)).tolist()
+    
+    test_image = cat_data[10000:12500,:]
+    test_image = np.concatenate((test_image, dog_data[10000:12500,:]), axis = 0)
+    test_label = np.ones(2500)
+    test_label = (np.concatenate((test_label, np.zeros(2500)), axis = 1)).tolist()
+    
+    return train_image, train_label, validation_image, validation_label, test_image, test_label
+
+read_data = timer(read_data)
+
+def SVM(images, labels):
+    clf = svm.SVC(kernel = 'rbf', C = 1.0)
+    clf.fit(images, labels)
+    return clf
+SVM = timer(SVM)
+
+def validation_test(clf, validation_image, validation_label):
+    y_predict = clf.predict(validation_image)
+    print "\nTesting on validationSet => accuracy: " + str(np.mean(y_predict == test_label))
+validation_test = timer(validation_test)
+
+def testData_test(clf, test_image, test_label):
+    y_predict = clf.predict(test_image)
+    print "\nTesting on TestSet => accuracy: " + str(np.mean(y_predict == test_label))
+testData_test = timer(testData_test)
+
+def trainData_test(clf, test_image, test_label):
+    y_predict = clf.predict(test_image)
+    print "\nTesting on TraningSet => accuracy: " + str(np.mean(y_predict == test_label))
+trainData_test = timer(trainData_test)
+
+if __name__ == '__main__':
+    train_image, train_label, validation_image, validation_label, test_image, test_label = read_data()
+    
+    clf = SVM(train_image, train_label)
+
+    #1. Kiem tra tren tap Train
+    trainData_test(clf, train_image, train_label)
+    #2. Kiem tra tren tap Vaidation
+    validation_test(clf, validation_image, validation_label)
+
+    #3. Sau khi chon duoc tham so cho mo hinh, thuc hien kiem tra cho tap Test
+    testData_test(clf, test_image, test_label)
+    
